@@ -1,0 +1,176 @@
+// =============================================================================================
+// FAVOR MANTER OS CREDITOS
+// Nome do Script: Lumber
+// Criado por: GrimmJoW (Pedro Oliveira)
+// ================================================== 
+// Versão: 1.0 Version
+// Data: 15/03/2025
+// Testado no: Imperial Shard
+// ================================================== 
+// Definir as variaveis antes de executar 
+// (Obrigatórias): tool,  containerBank (Se usar para guardar no banco), lumberX, Y, .... se usar macro em outro local
+// weaponCraft (Se for usar o craft),  containerAnimal(se usar para guardar no animal)
+// (Opcionais): qtStopCraft, qtWoodStore, actionWeightMax
+// =============================================================================================
+
+var msgWait = 'neste local|Não tem|muito longe|quebrou'; // Não alterar
+var tool = '0x0F47'; // Informe aqui o Serial do machado
+var maxWeight = 250; // Informe aqui o peso max, sempre coloque uns 80 a menos do seu maximo
+var maxSearchDistance = 70;  // Max distancia que vai fazer a busca de arvores
+var treeWorldLocations = createArr(400, 400); // numero de array max, a quantidade de arvores 
+var containerBank = '0x40060CBD'; // container do banco onde vai guardar os logs
+var lumberX = 3387, lumberY = 2667, lumberZ = 42, bankX = 3516, bankY = 2528, bankZ = 21;
+var toolCraft = '0x1022';
+var weaponCraft = '0x27A5'; // ATENÇÃO, QUANDO FOR FAZER CRAFT, FAÇA 1 VEZ ANTES DE COMEÇAR POIS O MACRO UTILIZA O LAST, E COLOQUE O TYPE AQUI
+var log = '0x1BDD'; // Não alterar
+var wood = '0x1BD7'; // Não alterar
+var qtStopCraft = 10; // Quando chegar nesta quantidadde para o craft e volta o lumber
+var qtWoodStore = 1500; // Quando chegar nesta quantidade executa a actionWeightMax
+var actionWeightMax = 2; // 1= Quando atingir o peso max, faz craft do item e derrete ate zerar. 2= corta e guarda no animal. 3= corta e guarda no banco
+var containerAnimal = '0x0000FA01'; // Object animal
+
+function Lumber(ptreeWorldLocation) {
+	walkTo('lumber');
+	var treeWorldLocation = ptreeWorldLocation == null ? FindTreesInArea() : ptreeWorldLocation;
+	for (c = 0; c < treeWorldLocation.length; c++) {
+		Orion.ClearJournal();
+		Orion.WalkTo(treeWorldLocation[c][0], treeWorldLocation[c][1], 0);
+
+		if (Player.Weight() >= maxWeight) {
+			if (actionWeightMax == 1) {
+				craft(true);
+			} else {
+				cutLogs(true);
+			}
+
+			if (Orion.Count(wood, '0x0000', backpack) > qtWoodStore) {
+				if (actionWeightMax == 2) {
+					storeAnimal();
+				} else if (actionWeightMax == 3) {
+					storeBank();
+				}
+
+			}
+
+		}
+		LumberAgain(treeWorldLocation[c][0], treeWorldLocation[c][1]);
+	}
+	Lumber(treeWorldLocation);
+}
+
+function FindTreesInArea() {
+	var trueWorldLocCounter = 0;
+	Orion.Print("Procurando árvores... Aguarde.");
+
+	for (c = (Player.X() - maxSearchDistance); c < (Player.X() + maxSearchDistance + 1); c++) {
+		for (d = (Player.Y() - maxSearchDistance); d < (Player.Y() + maxSearchDistance + 1); d++) {
+			if (Orion.ValidateTargetTile('tree', c, d)) {
+				treeWorldLocations[trueWorldLocCounter][0] = c;
+				treeWorldLocations[trueWorldLocCounter][1] = d;
+				trueWorldLocCounter++;
+			}
+		}
+	}
+	Orion.Print("Arvores encontrada e configurada, total: " + trueWorldLocCounter);
+	treeWorldLocations.length = trueWorldLocCounter;
+	return treeWorldLocations;
+}
+
+function createArr(x, y) {
+	var arr = new Array(x);
+	for (var c = 0; c < x; c++) {
+		arr[c] = new Array(y);
+	}
+	return arr;
+}
+
+function LumberAgain(x, y) {
+	Orion.ClearJournal();
+	Orion.WaitTargetTile('tree', x, y, 0);
+	Orion.UseType(tool);
+	Orion.WaitJournal(msgWait, Orion.Now(), (Orion.Now() + 16000), 'my|sys');
+}
+
+function OpenBank() {
+	Orion.SetTimer('openBank');
+	Orion.ClearJournal();
+	Orion.Say('banco');
+	do {
+		Orion.Wait(10);
+	} while (!Orion.InJournal('Banco aberto') && Orion.Timer('openBank') < 800);
+
+	Orion.Boxhack(Player.BankSerial());
+}
+
+function walkTo(pLugar) {
+	if (pLugar == 'banco') {
+		Orion.WalkTo(bankX, bankY, bankZ, 0);
+	} else {
+		Orion.WalkTo(lumberX, lumberY, lumberZ, 0);
+	}
+}
+
+function storeBank() {
+	walkTo('banco');
+	OpenBank();
+	var finditem = Orion.FindType(wood, 'any', backpack);
+	for (i = 0; i < finditem.length; i++) {
+		Orion.MoveItem(finditem[i], 0, containerBank);
+		Orion.Wait(700);
+	}
+	walkTo('lumber');
+}
+
+function storeAnimal() {
+	var finditem = Orion.FindType(wood, 'any', backpack);
+	for (i = 0; i < finditem.length; i++) {
+		Orion.MoveItem(finditem[i], 0, containerAnimal);
+		Orion.Wait(700);
+	}
+}
+
+
+function craft(pDerreter) {
+	while ((Orion.Count(log, '0x0000', backpack) >= qtStopCraft) || (Orion.Count(wood, 'any', backpack) >= qtStopCraft)) {
+		Orion.UseType(toolCraft, 'any');
+
+		if (Orion.WaitForGump(1000)) {
+			var gump0 = Orion.GetGump('last');
+			if ((gump0 !== null) && (!gump0.Replayed()) && (gump0.ID() === '0x38920ABD')) {
+				gump0.Select(Orion.CreateGumpHook(21));
+			}
+		}
+		Orion.ClearJournal();
+		Orion.WaitJournal('criou|falhou|quebrou', Orion.Now(), (Orion.Now() + 7000), 'my|sys');
+		Orion.Wait(400);
+		while (
+			pDerreter &&
+			(Orion.Count(weaponCraft, 'any', backpack) && !Orion.InJournal('quebrou')) >= 1) {
+			selectInLastGump('0x38920ABD', 14);
+			if (Orion.WaitForTarget(1000))
+				Orion.TargetType(weaponCraft, 'any');
+		}
+
+		selectInLastGump('0x38920ABD', 84);
+	}
+}
+
+function selectInLastGump(pGumpID, pGumpButton) {
+	if (Orion.WaitForGump(1000)) {
+		var gump = Orion.GetGump('last');
+		if ((gump !== null) && (!gump.Replayed()) && (gump.ID() === pGumpID)) {
+			gump.Select(Orion.CreateGumpHook(pGumpButton));
+			Orion.Wait(100);
+		}
+	}
+}
+
+function cutLogs() {
+	var finditem = Orion.FindType(log, 'any', backpack);
+	for (i = 0; i < finditem.length; i++) {
+		Orion.WaitTargetObject(finditem[i]);
+		Orion.UseType(tool);
+		Orion.Wait(200);
+	}
+	Orion.Wait(100);
+}

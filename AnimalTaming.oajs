@@ -1,0 +1,50 @@
+// =============================================================================================
+// FAVOR MANTER OS CREDITOS
+// Nome do Script: Taming
+// Criado por: GrimmJoW (Pedro Oliveira)
+// ================================================== 
+// Versão: 1.0 Version
+// Data: 25/03/2025
+// Testado no: Imperial Shard
+// ================================================== 
+// tame = segue o mob
+// TamingPKMob = não segue
+// =============================================================================================
+
+function tame() {
+  var mobs = Orion.FindType('!0x0190|!0x0191|!0x025E', '-1', ground, 'near|mobile', '25', 'any');
+  if (mobs.length > 0) {
+    Orion.SetGlobal('tame', mobs[0]);
+    var mobo = Orion.FindObject(mobs[0]);
+    var isPK = mobo.Notoriety() == 6;
+    Orion.CharPrint('self', 125, mobo.Name());
+    var count = 0;
+    Orion.ClearJournal();
+    while (!Orion.InJournal('aceitou')) {
+      Orion.WarMode(false);
+      while (!Orion.InJournal('comeca')) {
+        count = count + 1;
+        if (!isPK) {
+          Orion.WalkTo(mobo.X(), mobo.Y(), 0);
+        }
+        Orion.WaitTargetObject(Orion.GetGlobal('tame'));
+        Orion.UseSkill('Animal Taming');
+        Orion.Wait(500);
+        Orion.Print(count);
+        if (count > 10) {
+          return;
+        }
+      }
+      Orion.ClearJournal();
+      while (!Orion.InJournal('aceitou|domesticar|falhou|irritada|longe|claro')) {
+        if (!isPK) {
+          Orion.WalkTo(mobo.X(), mobo.Y(), 0);
+        }
+      }
+    }
+    Orion.WaitTargetObject(Orion.GetGlobal('tame'));
+    Orion.UseType('0x0F0E', '0x07FD');
+  } else {
+    Orion.Print('Não foi encontrado nada para tamar.');
+  }
+}

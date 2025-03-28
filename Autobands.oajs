@@ -1,0 +1,28 @@
+// =============================================================================================
+// FAVOR MANTER OS CREDITOS
+// Nome do Script: AutoChar
+// Criado por: GrimmJoW (Pedro Oliveira)
+// ================================================== 
+// Versão: 1.0 Version
+// Data: 25/03/2025
+// Testado no: Imperial Shard
+// ================================================== 
+// Sem configurações necessarias
+// =============================================================================================
+
+
+function autobands() {
+    while (true) {
+        if (Player.Hits() < Player.MaxHits()) {
+            var bandages = Orion.FindType('0x0E21');
+            if (bandages.length > 0) {
+                var startTime = Orion.Now();
+                Orion.BandageSelf();
+                Orion.WaitJournal('curou|escorregaram|envenenado|nao precisa|desocupadas', startTime, startTime + 5500);
+            } else {
+                Orion.Print('Acabou as bandagens!!');
+                Orion.Wait(1000);
+            }
+        }
+    }
+}
