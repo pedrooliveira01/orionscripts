@@ -1,0 +1,156 @@
+// =============================================================================================
+// FAVOR MANTER OS CREDITOS
+// Nome do Script: Minning Qualquer Lugar
+// Criado por: GrimmJoW (Pedro Oliveira)
+// ================================================== 
+// Versão: 1.0 Version
+// Data: 11/04/2025
+// Testado no: Imperial Shard
+// ================================================== 
+// Configure a posição na frente de uma forja
+// Execute o Autostart e selecione o animal para iniciar
+// É obrigatório utilizar animal, este script não guarda no banco!
+// =============================================================================================
+
+var minaX = 0, minaY = 0, minaZ = 0; // Se for = 0 então pega posição do boneco atual para iniciar
+var forjaX = 2592, forjaY = 455, forjaZ = -60;
+var typeOres = '0x19B9|0x19B8|0x19B7|0x19BA';
+var typeLingots = '0x1BF2';
+var pickaxe = '0x0E86'; // type da picareta e do martelo.
+var maxWeight = (Player.MaxWeight() - 150); //Peso Maximo - (Valor definido)
+var minningDepositos = true;
+var typesDepositos = '0x9CAB|0x9CAA';
+var depositos = [
+	{ name: 'Latão', graphic: '0x034F', active: true },
+	{ name: 'Dourado', graphic: '0x08A5', active: false },
+]
+// Fim das Configuraçõe Mining 
+
+function Autostart() {
+	Orion.Wait(1000);
+	Orion.CharPrint(self, 906, 'Bom jogo!');
+	Orion.Wait(100);
+	Orion.Exec('StartMining', true);
+	Orion.Wait(100);
+}
+
+function StartMining() {
+	Orion.AddObject('animalBau');
+	Orion.Print('-1', 'Selecione o animal onde vai guardar.');
+	while (Orion.HaveTarget()) { Orion.Wait('50'); }
+
+	if (minaX == 0) minaX = Player.X();
+	if (minaY == 0) minaY = Player.Y();
+	if (minaZ == 0) minaZ = Player.Z();
+
+	while (true) {
+		CheckWeight();
+		if (Orion.ValidateTargetTileRelative('cave', 0, 0)) {
+			if (Orion.HaveTarget())
+				Orion.CancelWaitTarget();
+		}
+		else {
+			Orion.WalkTo(minaX, minaY, minaZ, 0);
+		}
+		while (!Player.Dead()) {
+			Move();
+			CheckWeight();
+			if (minningDepositos) FindAndMinningDepositos();			
+			Cave();
+		}
+	}
+}
+
+function Move() {
+	Orion.WalkTo(Player.X() + Orion.Random(-5, 5), Player.Y() + Orion.Random(-5, 5), Player.Z(), 0);
+}
+
+function Cave() {
+	for (var x = -1; x <= 1; x++) {
+		for (var y = -1; y <= 1; y++) {
+			if (Orion.ValidateTargetTileRelative('cave', x, y)) {
+				if (Orion.HaveTarget())
+					Orion.CancelWaitTarget();
+			} else {
+				Orion.WalkTo(minaX, minaY, minaZ, 0);
+			}
+			Mining(x, y);
+
+			if (Orion.InJournal('current state|a ghost')) {
+				Orion.Wait(500);
+				return;
+			}
+			Orion.Wait(50);
+		}
+	}
+}
+
+function Mining(x, y) {
+	Orion.ClearJournal();
+	Orion.WaitTargetTileRelative('cave', x, y, Player.Z());
+	Orion.UseType(pickaxe);
+	Orion.WaitJournal('Nao tem|Sua picareta|foi morto|ver isto|minerar isto', Orion.Now(), (Orion.Now() + 20000), 'my|sys')
+
+	if (Orion.InJournal('Voce pos')) {
+		Mining(x, y);
+	}
+}
+
+function CheckWeight() {
+	var weight = Player.Weight();
+	if (weight >= maxWeight) {
+		smaltar();
+		Guardar();
+		Orion.WalkTo(minaX, minaY, minaZ, 0);
+	}
+}
+
+function smaltar() {
+	Orion.WalkTo(forjaX, forjaY, forjaZ, 0, 0, 1, 1);
+	while ((Player.X() != forjaX) && (Player.Y() != forjaY)) {
+		Orion.WalkTo(forjaX, forjaY, forjaZ, 0, 0, 1, 1);
+		Orion.Wait(1000);
+	}
+	while (Orion.Count(typeOres, 'any', backpack) > 0) {
+		var ores = Orion.FindType(typeOres, 'any', backpack);
+		for (var i = 0; i <= ores.length; i++) {
+			Orion.UseObject(ores[i]);
+			Orion.Wait(50);
+		}
+	}
+	var gump0 = Orion.GetGump('last');
+	gump0.Select(Orion.CreateGumpHook(0));
+}
+
+function Guardar() {
+	while (Orion.Count(typeLingots, 'any', backpack) >= 1) {
+		var finditem = Orion.FindType(typeLingots, 'any', backpack);
+		for (i = 0; i < finditem.length; i++) {
+			Orion.MoveItem(finditem[i], 0, 'animalBau');
+			Orion.Wait(500);
+		}
+		Orion.Wait(100);
+	}
+}
+
+function FindAndMinningDepositos() {
+	depositos.forEach(function (deposito) {
+		if (!deposito.active) return;
+			
+		var depFind = Orion.FindType(typesDepositos, deposito.graphic, ground, '', '300');
+		Orion.Print('Procurando ' + deposito.name + ', total encontrado: ' + depFind.length);
+		if (depFind.length == 0) return;
+		depFind.forEach(function (element) {
+			var depObj = Orion.FindObject(element)
+			Orion.Print('Minerando deposito de '+depObj.Name());
+			Orion.WalkTo(depObj.X(), depObj.Y(), depObj.Z());
+			Orion.UseType(pickaxe);
+			if (Orion.WaitForTarget(1000))
+		       Orion.TargetType(typesDepositos, deposito.graphic, ground); 			
+			Orion.WaitJournal('coletou', Orion.Now(), (Orion.Now() + 7000), 'my|sys');
+			Orion.WaitJournal('coletou', Orion.Now(), (Orion.Now() + 7000), 'my|sys');
+			Orion.WaitJournal('coletou', Orion.Now(), (Orion.Now() + 7000), 'my|sys');
+			CheckWeight();
+		})
+	})
+}

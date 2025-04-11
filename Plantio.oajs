@@ -3,8 +3,8 @@
 // Nome do Script: Harvest - Plantio
 // Criado por: GrimmJoW (Pedro Oliveira)
 // ================================================== 
-// Versão: 1.0 Version
-// Data: 27/03/2025
+// Versão: 1.1 Version
+// Data: 11/04/2025
 // Testado no: Imperial Shard
 // ================================================== 
 //  ****** MACRO EM TESTE ****** 
@@ -55,9 +55,9 @@ function Executar() {
 
 function WalkToPos(pos, isFunc) {
 	if (isFunc) {
-		Orion.WalkTo(pos.X(), pos.Y(), pos.Z());
+		Orion.WalkTo(pos.X(), pos.Y(), pos.Z(),0);
 	} else {
-		Orion.WalkTo(pos.X, pos.Y, pos.Z);
+		Orion.WalkTo(pos.X, pos.Y, pos.Z,0);
 	}
 	Orion.Wait(400);
 }
@@ -178,15 +178,19 @@ function StoreBank() {
 		Orion.Wait(700);
 	}
 	GetSeedContainer(bankSerial);
-	WalkToPos(farmPosition.X, farmPosition.Y, false);
+	WalkToPos(farmPosition, false);
 	Orion.Wait(500);
 }
 
 function GetSeedContainer(bankSerial) {
-	var finditem = Orion.FindType(seed, 'any', bankSerial);
-	for (i = 0; i < finditem.length; i++) {
-		Orion.MoveItem(finditem[i], seedQtde, backpack);
-		Orion.Wait(700);
+	var qtSeedBP = Orion.Count(seed);
+	var qtNeed = seedQtde - qtSeedBP;
+	if (qtNeed > 0) {	
+		var finditem = Orion.FindType(seed, 'any', bankSerial);
+		for (i = 0; i < finditem.length; i++) {
+			Orion.MoveItem(finditem[i], qtNeed, backpack);
+			Orion.Wait(700);
+		}
 	}
 }
 

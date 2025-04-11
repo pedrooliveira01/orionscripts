@@ -3,8 +3,8 @@
 // Nome do Script: AutoChar
 // Criado por: GrimmJoW (Pedro Oliveira)
 // ================================================== 
-// Versão: 1.0 Version
-// Data: 27/03/2025
+// Versão: 1.1 Version
+// Data: 11/04/2025
 // Testado no: Imperial Shard
 // ================================================== 
 //  ****** MACRO EM TESTE ****** 
@@ -14,10 +14,13 @@
 //  ****** MACRO EM TESTE ****** 
 // ================================================== 
 // Para executar o macro, defina o tipoChar e serialMainChar e depois utilize o execute()
+// É obrigatório estar em party o MainChar e os outros Char, podendo ter varios
+// É obrigatório no MainChar, quando pegar um target enviar uma mensagem assim:
+// Orion.SayParty('SERIAL QUEM ESTA ATACANDO');
 // =============================================================================================
 
 var serialMainChar = '0x00005495'; // Serial do seu personagem principal
-var tipoChar = 1; //0: arqueiro 1:mago
+var tipoChar = 0; //0: arqueiro 1:mago
 var timeSpellAgain = 5000; // Não castar toda hora
 var distanceMainChar = 1;
 
@@ -42,12 +45,7 @@ function execute() {
 			Orion.ToggleScript('AttacktNextMobileArcher');
 		}
 	}
-	if (tipoChar == 1) {
-		if (Orion.ScriptRunning('AttacktNextMobileMage') == 0) {
-			Orion.Print('Iniciando AttacktNextMobileMage');
-			Orion.ToggleScript('AttacktNextMobileMage');
-		}
-	}
+	Orion.ToggleScript('GetSerialFromMainChar');
 }
 
 function autobands() {
@@ -92,44 +90,17 @@ function FindNearestEnemyMobile() {
 	return mobiles[0];
 }
 
-function AttacktNextMobileArcher() {
-	var mobile = FindNearestEnemyMobile();
+function AttacktNextMobileArcher(mobile) {
 	if (mobile != null) {
-		Orion.ClientLastTarget(mobile);
-		Orion.TargetObject(mobile);
-		Orion.ClientLastAttack(mobile);
-		Orion.Attack(mobile);
-		Orion.WaitTargetObject(mobile);
-		Orion.Ignore(mobile);
-		var continuar = true;
+		var serial = mobile.Serial();	
 		ArmarBow();
-
-		while (continuar) {
-			Orion.ClearJournal();
-			Orion.Wait(500);
-			var mobileExists = Orion.FindObject(mobile);
-			var pedidoTrocar = Orion.InJournal('trocar');
-			continuar = mobileExists && (!pedidoTrocar);
-		}
-	} else {
-		Orion.Wait(300);
+		Orion.ClientLastTarget(serial);
+		Orion.TargetObject(serial);
+		Orion.ClientLastAttack(serial);
+		Orion.Attack(serial);
+		Orion.WaitTargetObject('lasttarget');
+		Orion.Ignore(serial);
 	}
-
-	AttacktNextMobileArcher();
-}
-
-function AttacktNextMobileMage() {
-	var mobile = FindNearestEnemyMobile();
-	if (mobile != null) {
-		Orion.ClientLastTarget(mobile);
-		Orion.Cast('Magic Arrow', 'lasttarget');
-		Orion.RemoveDisplayTimer(100);
-		Orion.AddDisplayTimer(100, 1600, 'UnderChar', 'Circle|Bar', 'Arrow', 0, 0, '0x0040', 0, 'red');
-		Orion.Wait(timeSpellAgain);
-	} else {
-		Orion.Wait(300);
-	}
-	AttacktNextMobileMage();
 }
 
 function CharPrintDelayed(serial, color, text) {
@@ -160,3 +131,20 @@ function ArmarBow() {
 	Orion.Attack('lasttarget');
 }
 
+
+function GetSerialFromMainChar(){
+	var lastTarget = null;
+	while (true){
+		var lastJournal = Orion.LastJournalMessage();
+		if (lastJournal.Serial() == serialMainChar){
+			var mobile = Orion.FindObject(lastJournal.Text());
+			if (mobile != null) {
+				if ((lastTarget == null) || (lastTarget != mobile.Serial())) {		
+					lastTarget = mobile.Serial();		
+					AttacktNextMobileArcher(mobile);
+				}
+			} 
+		}	
+		Orion.Wait(10);		
+	}
+}
