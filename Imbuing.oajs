@@ -1,0 +1,37 @@
+// =============================================================================================
+// FAVOR MANTER OS CREDITOS
+// Nome do Script: Imbuing
+// Criado por: GrimmJoW (Pedro Oliveira)
+// ================================================== 
+// Versão: 1.0 Version
+// Data: 12/24/2025
+// Testado no: Imperial Shard
+// ================================================== 
+// Ter uma bp no banco com as armas nao identificadas, e selecionar quando iniciar
+// =============================================================================================
+
+function Imbuing(){
+	Orion.AddObject('bpImbuing');
+	Orion.CharPrint(self, 906,  'Selecione Bau itens para imbuing');    
+	while(Orion.HaveTarget()){Orion.Wait('50');} 
+  
+	var itens = Orion.FindType('any', 'any', 'bpImbuing');
+	if ((itens == null)  || (itens.length == 0)) return;
+	
+	itens.forEach(function(item){	
+		useSkillAndWait('Item Identification', item, 500, 'skill novamente|ideia|certeza');
+		
+		Orion.MoveItem(item);
+		Orion.Wait(1000);
+
+		useSkillAndWait('Imbuing', item, 500, 'transformou|para desfazer');		
+						
+		Orion.WaitForGump(3000);			
+		var gump = Orion.GetGump('last');
+		gump.Select(Orion.CreateGumpHook(1)); 
+		Orion.Wait(200);  				
+			
+	})
+	itens = Orion.FindType('any', 'any', 'bpImbuing');
+	if (itens.length>0) Imbuing();
+}
