@@ -1,0 +1,165 @@
+// =============================================================================================
+// FAVOR MANTER OS CREDITOS
+// Nome do Script: Craft itens
+// Criado por: GrimmJoW (Pedro Oliveira)
+// ================================================== 
+// Versão: 1.1 Version
+// Data: 12/04/2025
+// Testado no: Imperial Shard
+// ================================================== 
+// Obs: Quando o item esta na pagina 2, 3 ... precisa fazer 1 e utilizar o btnLast, pois o Orion nao consegue alterar a pagina.
+// Executar sempre pelo ExecCraftItens..., pode ser criado mais seguindo o padrão
+// Configurando 1 item para craft exemplo: { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[3], btn: btnItensCraft[1], type: '0x0FBB', tools: toolTinker , sell: 'venderalicate' };
+// neste exemplo vai fazer craft de 15 quantidade, nao derrete, não deixa somente excepcional, e vende tudo quando faz.
+// Observação na questao de excepcional e derreter, tem algumas profissões que nao derrete ficando impossivel fazer somente excepcional.
+// =============================================================================================
+
+var btnCategorias = [0, 28, 1, 8, 15, 22, 29, 36, 43, 50, 57, 64];  // Botões das categorias, utilize na sequencia 0, 1, 2, 3, ... exemplo btnCategorias[1] = 28
+var btnItensCraft = [0, 2, 9, 16, 23, 30, 37, 44, 51, 58, 65]; // Botões dos itens que serão craftados, utilize na sequencia 0, 1, 2, 3,... exemplo btnCategorias[1] = 2
+var btnLast =21;
+var btnDerreter = 14; 
+var toolsBowcraft = '0x1022';
+var toolTailor = '0x0F9D';
+var toolTinker = '0x1EBC';
+
+function CraftItens(pItemCraft, pDerreterSempre) {
+    if (pItemCraft.qtCraft == null) return;
+    if ((Player.MaxWeight() - 10) < Player.Weight()) return;
+
+    Orion.Print('Criando...');
+    Orion.UseType(pItemCraft.tools);
+
+    // Seleciona a categoria do item a ser criado
+    if (pItemCraft.btncat > 0) {
+        selectGumpButton(pItemCraft.btncat);
+        Orion.WaitForGump(8000);
+    }
+
+    // Craft o item 
+    selectGumpButton(pItemCraft.btn);
+    Orion.WaitForGump(8000);
+    selectGumpButton(0);
+
+    Orion.Print('Total: ' + Orion.Count(pItemCraft.type) + ' de ' + pItemCraft.qtCraft);
+
+    if (pItemCraft.sell != null) {
+        Orion.Sell(pItemCraft.sell, 'vender')
+        CraftItens( pItemCraft);
+        return;
+    }
+
+    if (!pItemCraft.excepcional && !pItemCraft.derreter) {
+        if (Orion.Count(pItemCraft.type) < pItemCraft.qtCraft) { // se ainda não atingiu a quantidade executa novamente o macro
+            CraftItens(pItemCraft);
+        }
+        return;
+    }
+
+    // Localiza todos itens do tipo craftado
+    var listItens = Orion.FindType(pItemCraft.type);
+    var CountExcepcional = 0;
+
+
+    listItens.forEach(function (elemento) {
+        var itemElement = Orion.FindObject(elemento);
+        var ExcepcionalName = itemElement.Name().match('Excepcional');
+        var isExcepcional = (ExcepcionalName == 'Excepcional');
+
+        if (!pItemCraft.excepcional || pItemCraft.derreter) {
+            DerreterItem(elemento, pItemCraft.tools);
+        } else {
+            CountExcepcional = CountExcepcional + 1; // contagem de excepcional criado
+        }
+    })
+
+    if (pItemCraft.derreter) {
+        if (Orion.Count(pItemCraft.type) < pItemCraft.qtCraft) { // se ainda não atingiu a quantidade executa novamente o macro
+            CraftItens(pItemCraft);
+        }
+        return;
+    }
+
+    if (CountExcepcional < pItemCraft.qtCraft) { // se ainda não atingiu a quantidade executa novamente o macro
+        CraftItens( pItemCraft);
+    }
+}
+
+function DerreterItem(serial, tool) {
+    var itemElement = Orion.FindObject(serial);
+    Orion.Print('Derretendo - ' + itemElement.Name());
+    Orion.UseType(tool);
+    selectGumpButton(btnDerreter); // Derreter button             
+    Orion.Wait(50);
+    if (Orion.WaitForTarget(1000))
+        Orion.TargetObject(serial); // Seleciona o objeto para derreter  
+    Orion.Wait(500);
+    selectGumpButton(0); // Fecha o gump, mais para quando pedir para assinar não travar
+}
+
+function selectGumpButton(pButton) {
+    if (Orion.WaitForGump(1000)) {
+        var gump = Orion.GetGump('last');
+        if ((gump !== null) && (!gump.Replayed())) {
+            gump.Select(Orion.CreateGumpHook(pButton));
+            Orion.Wait(100);
+        }
+    }
+}
+
+// Este metodo vc inicia se for fazer item e vender para ele.
+function seguirVendedor() {
+    Orion.AddObject('vendedor');
+    Orion.CharPrint(self, 906, 'Selecione vendedor');
+    while (Orion.HaveTarget()) { Orion.Wait('50'); }
+    var npc = Orion.FindObject('vendedor');
+
+    if (npc == null) return;
+
+    while (true) {
+        Orion.WalkTo(npc.X(), npc.Y(), 0);
+        Orion.Wait(1000);
+    }
+}
+
+function ExecCraftItensBowcraft() {
+    var qtCraft = 36; // Quantidade de itens que precisa fazer craft  
+
+    var Arco					= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[5], btn: btnItensCraft[1], type: '0x13B2', tools: toolsBowcraft  };
+    var ArcoComposto		= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[5], btn: btnItensCraft[2], type: '0x26C2', tools: toolsBowcraft  };
+    var ArcoDeTreino		= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[5], btn: btnItensCraft[3], type: '0x13B2', tools: toolsBowcraft  };
+    var Besta					= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[5], btn: btnItensCraft[4], type: '0x0F50', tools: toolsBowcraft  };
+    var BestaPesada		= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[5], btn: btnItensCraft[5], type: '0x13FD', tools: toolsBowcraft  };
+    var BestaRepetidora	= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[5], btn: btnItensCraft[6], type: '0x26C3', tools: toolsBowcraft  };
+    var Yumi					= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[5], btn: btnItensCraft[7], type: '0x27A5', tools: toolsBowcraft  };
+
+    CraftItens(BestaRepetidora);
+}
+
+function ExecCraftItensTailor() {
+    var qtCraft = 36; // Quantidade de itens que precisa fazer craft
+
+    var bandagem				= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[6], btn:  btnItensCraft[3], type: '0x0E21', tools: toolTailor };
+    var avental					= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[6], btn:  btnItensCraft[1], type: '0x153B', tools: toolTailor };
+    var aventalGrande			= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[6], btn:  btnItensCraft[2], type: '0x153D', tools: toolTailor };
+    var camisaChique			= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[4], btn:  btnItensCraft[4], type: '0x1EFD', tools: toolTailor };
+    var chapeuAbaLarga		= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[3], btn:  btnItensCraft[4], type: '0x1714', tools: toolTailor };
+
+    CraftItens(bandagem);
+}
+
+function ExecCraftItensTinker() {
+    var qtCraft = 20; // Quantidade de itens que precisa fazer craft     
+
+    var alicate					= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[3], btn: btnItensCraft[1], type: '0x0FBB', tools: toolTinker , sell: 'venderalicate' };
+    var forcado				= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[3], btn: btnItensCraft[7], type: '0x0E87', tools: toolTinker };
+    var partesRelogio		= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[4], btn: btnItensCraft[6], type: '0x104F', tools: toolTinker };
+    var arosBarril			= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[4], btn: btnItensCraft[1], type: '0x1DB7', tools: toolTinker };
+    var dobradica			= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[4], btn: btnItensCraft[3], type: '0x1055', tools: toolTinker };
+    var eixo					= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[1], btn: btnLast			 , type: '0x105B', tools: toolTinker };  //faz o ultimo
+    var pickaxe				= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[1], btn: btnLast			 , type: '0x0E86', tools: toolTinker };  //faz o ultimo  
+    var partesSextante	= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[4], btn: btnItensCraft[7], type: '0x1059', tools: toolTinker };
+    var engrenagem		= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[4], btn: btnItensCraft[4], type: '0x1053', tools: toolTinker };
+    var molas					= { qtCraft: 10, derreter: false, excepcional: false, btncat: btnCategorias[4], btn: btnItensCraft[5], type: '0x105D', tools: toolTinker };    
+
+    CraftItens(molas);
+}
