@@ -4,44 +4,85 @@
 // Criado por: GrimmJoW (Pedro Oliveira)
 // ================================================== 
 // Versão: 1.1 Version
-// Data: 13/24/2025
+// Data: 20/04/2025
 // Testado no: Imperial Shard
 // ================================================== 
 // Ter uma bp no banco com as armas nao identificadas, e selecionar quando iniciar
 // =============================================================================================
 
-function Imbuing() {
+function Imbuing(){
 	Orion.AddObject('bpImbuing');
-	Orion.CharPrint(self, 906, 'Selecione Bau itens para imbuing');
-	while (Orion.HaveTarget()) { Orion.Wait('50'); }
-
+	Orion.CharPrint(self, 906,  'Selecione Bau itens para imbuing');    
+	while(Orion.HaveTarget()){Orion.Wait('50');} 
+	Orion.UseObject('bpImbuing');
+	Orion.Wait(500);
+	if ((Player.MaxWeight() - Player.Weight()) < 30) return;
+  
 	var itens = Orion.FindType('any', 'any', 'bpImbuing');
-	if ((itens == null) || (itens.length == 0)) return;
-
-	itens.forEach(function (item) {
-		useSkillAndWait('Item Identification', item, 500, 'skill novamente|ideia|certeza');
-
+	if ((itens == null)  || (itens.length == 0)) return;
+	
+	itens.forEach(function(item){	
+		var objItem = Orion.FindObject(item);
+		Orion.Print('Proximo item ' + objItem.Name());
+		while (!verifyIdentified(item)){
+			useSkillAndWait('Item Identification', item, 500, 'skill novamente|ideia|certeza');	
+		}
+					
 		Orion.MoveItem(item);
-		Orion.Wait(1000);
+		Orion.Wait(1300);
 
-		useSkillAndWait('Imbuing', item, 500, 'transformou|para desfazer');
-
-		Orion.WaitForGump(3000);
-		var gump = Orion.GetGump('last');
-		gump.Select(Orion.CreateGumpHook(1));
-		Orion.Wait(200);
-
+		useSkillAndWait('Imbuing', item, 500, 'transformou|para desfazer|nada de magico');	
+		selectGumpImbuing();	
+			
 	})
 	itens = Orion.FindType('any', 'any', 'bpImbuing');
-	if (itens.length > 0) Imbuing();
+	if (itens.length>0) Imbuing();
 }
 
-function useSkillAndWait(skill, target, wait, msgJournal) {
+function useSkillAndWait(skill, target, wait, msgJournal){
 	var _continue = true;
-	while (_continue) {
+	var _tentativas = 0;	
+	while (_continue && (_tentativas < 6)) {	
+		_tentativas = _tentativas + 1;		
 		Orion.ClearJournal();
 		Orion.UseSkillTarget(skill, target);
 		Orion.Wait(wait);
-		_continue = Orion.InJournal(msgJournal);
-	}
+		_continue = !Orion.InJournal(msgJournal);
+	}		
 }
+
+function verifyIdentified(item){
+	var objItem = Orion.FindObject(item);
+	if (objItem == null) return false;
+	var text = objItem.Properties();
+	var findText = text.match('Identificado');
+	return (findText == null) || (findText != 'Identificado');	 
+}
+
+function selectGumpImbuing(){
+	var _continue = true;
+	var gump = null;
+	var _tentativas = 0;	
+	Orion.WaitForGump(3000);
+	while (_continue && (_tentativas < 5)) {		
+		_tentativas = _tentativas + 1;		
+		var _countGumps = Orion.GumpCount();
+		for (var c = 0; c < _countGumps; c++) {
+			gump = Orion.GetGump(c);
+			var gumpImbuingName = gump.TextList()[0].match('Desencantar');
+       		var isGumpImbuingName = (gumpImbuingName == 'Desencantar');
+       		if (isGumpImbuingName){
+       			gump.Select(Orion.CreateGumpHook(1)); 
+       			Orion.Wait(200); 
+				_continue = !gump.Replayed();
+				return;	       			
+       		}	
+			Orion.Wait(200); 		
+		}
+	}		
+}
+
+
+
+ 		
+
