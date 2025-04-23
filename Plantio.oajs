@@ -3,8 +3,8 @@
 // Nome do Script: Harvest - Plantio
 // Criado por: GrimmJoW (Pedro Oliveira)
 // ================================================== 
-// Versão: 1.1 Version
-// Data: 11/04/2025
+// Versão: 1.2 Version
+// Data: 23/04/2025
 // Testado no: Imperial Shard
 // ================================================== 
 //  ****** MACRO EM TESTE ****** 
@@ -27,30 +27,28 @@
 // =============================================================================================
 
 var seed = '0x0F24'; // type da semente que irá plantar
-var seedQtde = 18; // Quantidade de sementes (deixar sementes no banco)
+var seedQtde = 121; // Quantidade de sementes (deixar sementes no banco)
 var waitSecondState = '0x0CB6'; // type da planta no segundo estagio, depois da semente
-var harvested = '0x0DF9'; // type final do reagente para colher
-var arrHarvestList = '0x0C51|0x0C52|0x0C53|0x0C54'; // Quando a planta esta no ultimo estagio, ela pode vir em varias posições, cada uma é um type
-var maxSearchDistance = 6; // Distancia maxima, pense assim, 8 é um Perimeter de 8x8 = 64 tiles
+var harvested = '0x0DF9|0xF86'; // type final do reagente para colher
+var arrHarvestList = '0x0C51|0x0C52|0x0C53|0x0C54|0x18DF'; // Quando a planta esta no ultimo estagio, ela pode vir em varias posições, cada uma é um type
+var maxSearchDistance = 12; // Distancia maxima, pense assim, 8 é um Perimeter de 8x8 = 64 tiles
 var arrPerimeter = FindPerimeterInArea(); // Registra os tiles de acordo com o maxSearchDistance
 var waitStateTime = 10000; // Tempo que pausa nos loops entre os estagios
 var stockIn = 0; //0=bank -- não fiz ainda para guardar no animal ou casa.. preguiça
 var bankPosition = { X: 1433, Y: 1693, Z: 0 }; // posição do banco 
 var farmPosition = { X: arrPerimeter[0].X(), Y: arrPerimeter[0].Y(), Z: arrPerimeter[0].Z() };  // posição do inicio do macro
-var seedList; // variavel que será utilizada depois no EXECUTAR
-var weigthMax = Player.MaxWeight() - 30; // Quando atigir este peso vai guardar
+var seedList =Orion.FindType(seed); // variavel que será utilizada depois no EXECUTAR
+var weigthMax = Player.MaxWeight() - 50; // Quando atigir este peso vai guardar
 var tileLand = '0x0009'; // FIXO NÃO ALTERE
 
 function Executar() {
-	seedList = Orion.FindType(seed);
-
 	if (seedList.length == 0) {
 		Orion.Print('Sem sementes');
 		StoreBank();
 	}
 
 	Orion.Print('Iniciando plantação');
-	Plant()
+	Orion.Exec('Plant', true);
 }
 
 function WalkToPos(pos, isFunc) {
@@ -78,7 +76,7 @@ function WaitUntilVerifyObj(pObj, pMsgs, pInvertVerifyObjGround) {
 }
 
 function Plant() {
-	//var newArrPerimeterValid;	
+	seedList =Orion.FindType(seed);
 	arrPerimeter.forEach(function (pos) {
 		if (pos.Graphic() != tileLand) return;
 		var _continue = true;
@@ -134,14 +132,12 @@ function Harvest() {
 				getHarvestFromGround();
 				if (Player.Weight() > weigthMax) {
 					storedInBank = true;
-					StoreBank();
+					StoreBank( { X: Player.X(), Y: Player.Y(), Z: Player.Z() } );
 				}
 			}
 		}
 	});
-	if (!storedInBank) {
-		StoreBank();
-	}
+	StoreBank();
 }
 
 function getHarvestFromGround() {
@@ -165,28 +161,30 @@ function VerifyObjGround(objVerify) {
 }
 
 
-function StoreBank() {
+function StoreBank(returnToPosition) {
+	var _returnToPosition = farmPosition;	
+	if (returnToPosition != null) _returnToPosition = returnToPosition;
+	
 	WalkToPos(bankPosition, false);
 	Orion.Wait(600);
 	Orion.Say('banco');
 	Orion.Wait(600);
-	var bankSerial = Player.BankSerial();
-	Orion.Boxhack(bankSerial);
+	Orion.Boxhack(Player.BankSerial());
 	var finditem = Orion.FindType(harvested, 'any', backpack);
 	for (i = 0; i < finditem.length; i++) {
-		Orion.MoveItem(finditem[i], 0, bankSerial);
+		Orion.MoveItem(finditem[i], 0, Player.BankSerial());
 		Orion.Wait(700);
 	}
-	GetSeedContainer(bankSerial);
-	WalkToPos(farmPosition, false);
+	GetSeedContainer();
+	WalkToPos(_returnToPosition, false);
 	Orion.Wait(500);
 }
 
-function GetSeedContainer(bankSerial) {
+function GetSeedContainer() {
 	var qtSeedBP = Orion.Count(seed);
 	var qtNeed = seedQtde - qtSeedBP;
 	if (qtNeed > 0) {	
-		var finditem = Orion.FindType(seed, 'any', bankSerial);
+		var finditem = Orion.FindType(seed, 'any', Player.BankSerial());
 		for (i = 0; i < finditem.length; i++) {
 			Orion.MoveItem(finditem[i], qtNeed, backpack);
 			Orion.Wait(700);
@@ -194,3 +192,16 @@ function GetSeedContainer(bankSerial) {
 	}
 }
 
+
+function FindGroundClickAndCollect(){
+	var itemType = '0x18E1|0x18E9|0x18DF';
+	var lista = Orion.FindType(itemType, 'any',ground);
+	if (lista.length == 0) return;
+	var obj = Orion.FindObject(lista[0]);
+	Orion.WalkTo(obj.X(),obj.Y());
+	Orion.Wait(500);
+	Orion.UseObject(obj.Serial());
+	Orion.Wait(1000);
+	Orion.Ignore(obj.Serial());
+	FindGroundClickAndCollect();	
+}
