@@ -3,8 +3,8 @@
 // Nome do Script: Craft itens
 // Criado por: GrimmJoW (Pedro Oliveira)
 // ================================================== 
-// Versão: 1.1 Version
-// Data: 12/04/2025
+// Versão: 1.0 Version
+// Data: 11/04/2025
 // Testado no: Imperial Shard
 // ================================================== 
 // Obs: Quando o item esta na pagina 2, 3 ... precisa fazer 1 e utilizar o btnLast, pois o Orion nao consegue alterar a pagina.
@@ -21,13 +21,49 @@ var btnDerreter = 14;
 var toolsBowcraft = '0x1022';
 var toolTailor = '0x0F9D';
 var toolTinker = '0x1EBC';
+var toolEscriba = '0x0FBF';
+var toolAlchemy = '0x0E9B';
 
-function CraftItens(pItemCraft, pDerreterSempre) {
+function executeMeditation(){
+	Orion.ClearJournal();
+    Orion.UseSkill('Meditation');
+    Orion.Wait(1000);
+    while (!Orion.InJournal('começa')){
+    	Orion.Wait(100);
+    }
+    while (!Orion.InJournal('paz')){
+    	Orion.Wait(100);
+    }    
+    if ((!Orion.InJournal('começa'))&&(Player.Mana() < Player.MaxMana())){
+    	executeMeditation();
+    }
+};
+
+function executeJuncaoItens(pItemType){
+	while (Orion.FindType(pItemType).length > 1){		
+		Orion.MoveItemType(pItemType);
+		Orion.Wait(100);
+	}
+
+}
+
+function CraftItens(pItemCraft) {
     if (pItemCraft.qtCraft == null) return;
-    if ((Player.MaxWeight() - 10) < Player.Weight()) return;
-
+    if ((Player.MaxWeight() - 10) < Player.Weight()) {
+    	Orion.Print('Precisa ter menos peso');
+    	return;
+    }    
+    
     Orion.Print('Criando...');
+    var tool = Orion.FindType(pItemCraft.tools);
+    if (tool.length == 0) {
+    	Orion.Print('Não encontrado a ferramenta na bolsa - ' + pItemCraft.tools);
+    	return;
+    }    
     Orion.UseType(pItemCraft.tools);
+    if (Orion.InJournal('Voce nao tem')) return;
+    Orion.ClearJournal();
+    
 
     // Seleciona a categoria do item a ser criado
     if (pItemCraft.btncat > 0) {
@@ -42,12 +78,18 @@ function CraftItens(pItemCraft, pDerreterSempre) {
 
     Orion.Print('Total: ' + Orion.Count(pItemCraft.type) + ' de ' + pItemCraft.qtCraft);
 
+    if (pItemCraft.manaRequired != null){
+       if (Player.Mana() <= pItemCraft.manaRequired) 	executeMeditation();  
+		executeJuncaoItens(pItemCraft.type);  	
+    }	
+
     if (pItemCraft.sell != null) {
         Orion.Sell(pItemCraft.sell, 'vender')
         CraftItens( pItemCraft);
         return;
     }
-
+    
+   
     if (!pItemCraft.excepcional && !pItemCraft.derreter) {
         if (Orion.Count(pItemCraft.type) < pItemCraft.qtCraft) { // se ainda não atingiu a quantidade executa novamente o macro
             CraftItens(pItemCraft);
@@ -122,8 +164,6 @@ function seguirVendedor() {
 }
 
 function ExecCraftItensBowcraft() {
-    var qtCraft = 36; // Quantidade de itens que precisa fazer craft  
-
     var Arco					= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[5], btn: btnItensCraft[1], type: '0x13B2', tools: toolsBowcraft  };
     var ArcoComposto		= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[5], btn: btnItensCraft[2], type: '0x26C2', tools: toolsBowcraft  };
     var ArcoDeTreino		= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[5], btn: btnItensCraft[3], type: '0x13B2', tools: toolsBowcraft  };
@@ -136,8 +176,6 @@ function ExecCraftItensBowcraft() {
 }
 
 function ExecCraftItensTailor() {
-    var qtCraft = 36; // Quantidade de itens que precisa fazer craft
-
     var bandagem				= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[6], btn:  btnItensCraft[3], type: '0x0E21', tools: toolTailor };
     var avental					= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[6], btn:  btnItensCraft[1], type: '0x153B', tools: toolTailor };
     var aventalGrande			= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[6], btn:  btnItensCraft[2], type: '0x153D', tools: toolTailor };
@@ -148,18 +186,46 @@ function ExecCraftItensTailor() {
 }
 
 function ExecCraftItensTinker() {
-    var qtCraft = 20; // Quantidade de itens que precisa fazer craft     
-
     var alicate					= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[3], btn: btnItensCraft[1], type: '0x0FBB', tools: toolTinker , sell: 'venderalicate' };
     var forcado				= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[3], btn: btnItensCraft[7], type: '0x0E87', tools: toolTinker };
-    var partesRelogio		= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[4], btn: btnItensCraft[6], type: '0x104F', tools: toolTinker };
+    var partesRelogio		= { qtCraft: 10, derreter: false, excepcional: false, btncat: btnCategorias[4], btn: btnItensCraft[6], type: '0x104F', tools: toolTinker };
     var arosBarril			= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[4], btn: btnItensCraft[1], type: '0x1DB7', tools: toolTinker };
     var dobradica			= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[4], btn: btnItensCraft[3], type: '0x1055', tools: toolTinker };
-    var eixo					= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[1], btn: btnLast			 , type: '0x105B', tools: toolTinker };  //faz o ultimo
+    var eixo					= { qtCraft: 20, derreter: false, excepcional: false, btncat: btnCategorias[1], btn: btnLast			 , type: '0x105B', tools: toolTinker };  //faz o ultimo
     var pickaxe				= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[1], btn: btnLast			 , type: '0x0E86', tools: toolTinker };  //faz o ultimo  
     var partesSextante	= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[4], btn: btnItensCraft[7], type: '0x1059', tools: toolTinker };
-    var engrenagem		= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[4], btn: btnItensCraft[4], type: '0x1053', tools: toolTinker };
-    var molas					= { qtCraft: 10, derreter: false, excepcional: false, btncat: btnCategorias[4], btn: btnItensCraft[5], type: '0x105D', tools: toolTinker };    
+    var engrenagem		= { qtCraft: 20, derreter: false, excepcional: false, btncat: btnCategorias[4], btn: btnItensCraft[4], type: '0x1053', tools: toolTinker };
+    var molas					= { qtCraft: 20, derreter: false, excepcional: false, btncat: btnCategorias[4], btn: btnItensCraft[5], type: '0x105D', tools: toolTinker };    
+    var pilao					= { qtCraft: 10, derreter: false, excepcional: false, btncat: btnCategorias[1], btn: btnLast			 , type: '0x0E9B', tools: toolTinker };  //faz o ultimo  
+    var froe					= { qtCraft: 10, derreter: false, excepcional: false, btncat: btnCategorias[1], btn: btnLast			 , type: '0x10E5', tools: toolTinker };  //faz o ultimo      
+    var chave					= { qtCraft: 10, derreter: false, excepcional: false, btncat: btnCategorias[6], btn: btnItensCraft[4], type: '0x1010', tools: toolTinker };    
+    CraftItens(partesRelogio);
+}
 
-    CraftItens(molas);
+function ExecCraftItensScroll() {
+	Orion.ClearJournal();
+    var recall				= { qtCraft: 100, derreter: false, excepcional: false, btncat: btnCategorias[3], btn: btnLast, type: '0x1F4C', tools: toolEscriba, manaRequired: 12 };
+    var archCure			= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[3], btn: btnLast, type: '0x1F45', tools: toolEscriba, manaRequired: 20 };    
+    var archProtect		= { qtCraft: 10, derreter: false, excepcional: false, btncat: btnCategorias[3], btn: btnLast, type: '0x1F46', tools: toolEscriba, manaRequired: 20 };        
+    var magicLock		= { qtCraft: 15, derreter: false, excepcional: false, btncat: btnCategorias[3], btn: btnLast, type: '0x0136', tools: toolEscriba, manaRequired: 12 };        
+    var curse				= { qtCraft: 70, derreter: false, excepcional: false, btncat: btnCategorias[3], btn: btnLast, type: '0x1F47', tools: toolEscriba, manaRequired: 12 };            
+    var greatHeal		= { qtCraft: 69, derreter: false, excepcional: false, btncat: btnCategorias[3], btn: btnLast, type: '0x1F49', tools: toolEscriba, manaRequired: 12 };                
+    var clumsy			= { qtCraft: 80, derreter: false, excepcional: false, btncat: btnCategorias[2], btn: btnItensCraft[2], type: '0x1F2E', tools: toolEscriba, manaRequired: 5 };                    
+    var fleeblemind		= { qtCraft: 80, derreter: false, excepcional: false, btncat: btnCategorias[2], btn: btnItensCraft[4], type: '0x1F30', tools: toolEscriba, manaRequired: 8 };                        
+    var weaken			= { qtCraft: 80, derreter: false, excepcional: false, btncat: btnCategorias[2], btn: btnItensCraft[8], type: '0x1F34', tools: toolEscriba, manaRequired: 8 };                            
+    var cure				= { qtCraft: 50, derreter: false, excepcional: false, btncat: btnCategorias[2], btn: btnLast, type: '0x1F37', tools: toolEscriba, manaRequired: 8 };                                
+    var heal				= { qtCraft: 50, derreter: false, excepcional: false, btncat: btnCategorias[2], btn: btnItensCraft[5], type: '0x1F31', tools: toolEscriba, manaRequired: 8 };                                    
+    var agility				= { qtCraft: 50, derreter: false, excepcional: false, btncat: btnCategorias[2], btn: btnItensCraft[9], type: '0x1F35', tools: toolEscriba, manaRequired: 8 };                                       
+    var dexterity			= { qtCraft: 50, derreter: false, excepcional: false, btncat: btnCategorias[2], btn: btnItensCraft[10], type: '0x1F36', tools: toolEscriba, manaRequired: 8 };                                    
+    var strenght			= { qtCraft: 50, derreter: false, excepcional: false, btncat: btnCategorias[2], btn: btnLast, type: '0x1F3C', tools: toolEscriba, manaRequired: 8 };                                               
+
+    CraftItens(recall);     
+}
+
+function ExecCraftItensAlchemy() {
+	Orion.ClearJournal();
+    var agilityMaior		= { qtCraft: 160, derreter: false, excepcional: false, btncat: btnCategorias[3], btn:  btnItensCraft[3], type: '0x0F08', tools: toolAlchemy};
+    var forcaMaior		= { qtCraft: 200, derreter: false, excepcional: false, btncat: btnCategorias[3], btn:  btnItensCraft[6], type: '0x0F09', tools: toolAlchemy};    
+
+    CraftItens(forcaMaior);     
 }
