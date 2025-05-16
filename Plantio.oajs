@@ -29,8 +29,8 @@
 var seed = '0x0F24'; // type da semente que irá plantar
 var seedQtde = 121; // Quantidade de sementes (deixar sementes no banco)
 var waitSecondState = '0x0CB6'; // type da planta no segundo estagio, depois da semente
-var harvested = '0x0DF9|0xF86'; // type final do reagente para colher
-var arrHarvestList = '0x0C51|0x0C52|0x0C53|0x0C54|0x18DF'; // Quando a planta esta no ultimo estagio, ela pode vir em varias posições, cada uma é um type
+var harvested = '0x0DF9|0xF86|0x0F85|0x0F88'; // type final do reagente para colher
+var arrHarvestList = '0x0C51|0x0C52|0x0C53|0x0C54|0x18DF|0x18E9|0x18E5'; // Quando a planta esta no ultimo estagio, ela pode vir em varias posições, cada uma é um type
 var maxSearchDistance = 12; // Distancia maxima, pense assim, 8 é um Perimeter de 8x8 = 64 tiles
 var arrPerimeter = FindPerimeterInArea(); // Registra os tiles de acordo com o maxSearchDistance
 var waitStateTime = 10000; // Tempo que pausa nos loops entre os estagios
@@ -40,6 +40,8 @@ var farmPosition = { X: arrPerimeter[0].X(), Y: arrPerimeter[0].Y(), Z: arrPerim
 var seedList =Orion.FindType(seed); // variavel que será utilizada depois no EXECUTAR
 var weigthMax = Player.MaxWeight() - 50; // Quando atigir este peso vai guardar
 var tileLand = '0x0009'; // FIXO NÃO ALTERE
+var bpRareItens = '0x402FC108';
+var rareItens = '0x0979|0x09C9|0x103D';
 
 function Executar() {
 	if (seedList.length == 0) {
@@ -170,11 +172,19 @@ function StoreBank(returnToPosition) {
 	Orion.Say('banco');
 	Orion.Wait(600);
 	Orion.Boxhack(Player.BankSerial());
+	
 	var finditem = Orion.FindType(harvested, 'any', backpack);
 	for (i = 0; i < finditem.length; i++) {
 		Orion.MoveItem(finditem[i], 0, Player.BankSerial());
 		Orion.Wait(700);
 	}
+	
+	finditem = Orion.FindType(rareItens, 'any', backpack);
+	for (i = 0; i < finditem.length; i++) {
+		Orion.MoveItem(finditem[i], 0, bpRareItens);
+		Orion.Wait(700);
+	}
+	
 	GetSeedContainer();
 	WalkToPos(_returnToPosition, false);
 	Orion.Wait(500);
@@ -185,9 +195,10 @@ function GetSeedContainer() {
 	var qtNeed = seedQtde - qtSeedBP;
 	if (qtNeed > 0) {	
 		var finditem = Orion.FindType(seed, 'any', Player.BankSerial());
-		for (i = 0; i < finditem.length; i++) {
-			Orion.MoveItem(finditem[i], qtNeed, backpack);
+		if (finditem.length > 0) {
+			Orion.MoveItem(finditem[0], qtNeed, backpack);	
 			Orion.Wait(700);
+			GetSeedContainer();// validacao somente
 		}
 	}
 }
