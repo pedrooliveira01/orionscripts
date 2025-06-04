@@ -1,0 +1,75 @@
+// ==================================================
+// Nome do Script:     				Corta Madeiras Especiais
+// Criado por:         				Pedro Oliveira (GrimmJow)
+// ================================================== 
+// Versão:          		1.0 Version
+// Data:			            04/06/2025
+// Testado no:          	Imperial Shard 
+// ==================================================
+// Executar ExecuteCutSpecialTree
+
+var tool = '0x0F47|0x0F43'; // Informe aqui o Serial do machado
+var log = '0x1BDD'; // Não alterar
+
+function ExecuteCutSpecialTree(){
+	var arvoreObj = null;
+	var _continue = true;
+	var todasmadeiras = '0x0DA4|0x0D98|0x0CDD|0x0CD7|0x0CDA';
+	var pauBrasilRubra = '0x0CDD|0x0D98';
+	var jatoba = '0x26F1';	
+	var madeiraCortar = todasmadeiras;
+	var distCount = 1;
+	var arvores = [];
+			
+	Orion.UseType(tool);	
+	if (Orion.WaitForTarget(1000))
+	    Orion.TargetObject(ground);  
+	
+	while (true) {
+	    distCount = 1;
+		Orion.Wait(100);
+		Orion.Print('Procurando...');	  
+		arvores = [];			
+		while ((arvores.length == 0)&&(distCount<300)){
+			arvores = Orion.FindType(madeiraCortar, '-1', ground, 'any|fast|near', distCount);
+			distCount = distCount +1;
+			Orion.Wait(10);			
+		}	
+		Orion.Wait(100);
+		if (arvores.length == 0) continue;		
+		arvoreObj = Orion.FindObject(arvores[0]);
+	    Orion.Print('****Achei**** - ' + arvoreObj.Name());
+	    Orion.Wait(100);
+	    while (arvoreObj.Distance()>1) seguirMobo(arvoreObj);
+	    _continue = true;	    
+	    distCount = 0;
+	    while (_continue){
+	    	var arvoreObj = Orion.FindObject(arvoreObj.Serial());  
+	    	distCount = distCount + 1;
+	    	_continue = (arvoreObj != null);
+	    	if (distCount > 50) continue;
+	    	if (_continue){
+				Orion.UseType(tool);
+			    if (Orion.WaitForTarget(1000))
+	    		   Orion.TargetObject(arvoreObj.Serial());  	    	
+	    		Orion.Print('Cortando... ' + arvoreObj.Properties());	    		    	
+	    		Orion.Wait(500);	
+	    	}    	    	    
+	    } 
+	    cutLogs();   
+	}
+}
+
+function cutLogs(){
+	var finditem = Orion.FindType(log, 'any', backpack);
+	for(i = 0; i < finditem.length; i++) {
+		Orion.WaitTargetObject(finditem[i]);
+		Orion.UseType(tool);  
+		Orion.Wait(200);
+	} 
+	Orion.Wait(100);
+}
+
+function seguirMobo(mobo){
+  Orion.WalkTo(mobo.X(), mobo.Y(), 0);
+}
