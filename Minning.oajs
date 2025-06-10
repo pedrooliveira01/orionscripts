@@ -19,10 +19,11 @@ var typeLingots = '0x1BF2';
 var pickaxe = '0x0E86'; // type da picareta e do martelo.
 var maxWeight = (Player.MaxWeight() - 150); //Peso Maximo - (Valor definido)
 var minningDepositos = true;
-var typesDepositos = '0x9CAB|0x9CAA';
+var typesDepositos = '0x9CAB|0x9CAA|0X9CAC';
 var depositos = [
 	{ name: 'Latão', graphic: '0x034F', active: true },
 	{ name: 'Dourado', graphic: '0x08A5', active: false },
+	{ name: 'Onix', graphic: '0x096C', active: true },	
 ]
 // Fim das Configuraçõe Mining 
 
@@ -153,4 +154,61 @@ function FindAndMinningDepositos() {
 			CheckWeight();
 		})
 	})
+}
+
+
+function seguirMobo(mobo){
+  Orion.WalkTo(mobo.X(), mobo.Y(), 0);
+}
+
+
+function mineriosEspeciais(){
+	var arvoreObj = null;
+	var _continue = true;
+	var depositos = '0x9CAA|0x9CAB|0x9CAC';
+	var onix = '0x096C';
+	var niquel = '0x0295';
+	var dourado = '0x08A5';
+	var valiriano = '0x0527';	
+	var latao = '0x034F';
+	var graphicDepositos = 	onix+'|'+niquel+'|'+dourado+'|'+valiriano+'|'+latao;
+	var distCount = 1;
+	var arrDepositos = [];
+			
+	Orion.UseType(pickaxe);	
+	if (Orion.WaitForTarget(1000))
+	    Orion.CancelTarget();  
+	
+	while (true) {
+	    distCount = 1;
+		Orion.Wait(100);
+		Orion.Print('Procurando...');	  
+		arrDepositos = [];			
+		while ((arrDepositos.length == 0)&&(distCount<300)){
+			arrDepositos = Orion.FindType(depositos, graphicDepositos, ground, 'any|fast|near', distCount);
+			distCount = distCount +1;
+			Orion.Wait(10);			
+		}	
+		Orion.Wait(100);
+		if (arrDepositos.length == 0) continue;		
+		depositoObj = Orion.FindObject(arrDepositos[0]);
+	    Orion.Print('****Achei**** - ' + depositoObj.Name());
+	    Orion.Wait(100);
+	    while (depositoObj.Distance()>1) seguirMobo(depositoObj);
+	    _continue = true;	    
+	    distCount = 0;
+	    while (_continue){
+	    	var depositoObj = Orion.FindObject(depositoObj.Serial());  
+	    	distCount = distCount + 1;
+	    	_continue = (depositoObj != null);
+	    	if (distCount > 50) continue;
+	    	if (_continue){
+				Orion.UseType(pickaxe);
+			    if (Orion.WaitForTarget(1000))
+	    		   Orion.TargetObject(depositoObj.Serial());  	    	
+	    		Orion.Print('Cortando... ' + depositoObj.Properties());	    		    	
+	    		Orion.Wait(500);	
+	    	}    	    	    
+	    } 
+	}
 }
