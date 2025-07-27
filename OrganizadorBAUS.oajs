@@ -1,0 +1,261 @@
+// =============================================================================================
+// FAVOR MANTER OS CREDITOS
+// Nome do Script: OrganizadorBAUS
+// Criado por: GrimmJoW (Pedro Oliveira)
+// ================================================== 
+// Versão: 1.0 Version
+// Data: 27/07/2025
+// Testado no: Imperial Shard
+// ================================================== 
+// Para executar o macro, defina o tipoChar e serialMainChar e depois utilize o execute()
+// Ao rodar ExecOrganizarTalisman ou OrganizarJoiaMagicaSlayer ou OrgqanizarJoiaAnelBrincoBracelete,....
+// Selecione a bolsa/baus... ORIGEM e DESTINO, se quiser organizar o proprio bau selecione ele como Origem e destino
+// =============================================================================================
+
+function ExecOrganizarTalisman() {
+	var xIni = 40;
+	var yIni = 40;
+	var arrNames = [
+		{ name: 'Arachnid', x: 0 + xIni, y: 0 + yIni },
+		{ name: 'Bat ', x: 25 + xIni, y: 0 + yIni },
+		{ name: 'Beetle', x: 50 + xIni, y: 0 + yIni },
+		{ name: 'Bovine', x: 75 + xIni, y: 0 + yIni },
+		{ name: 'Demonios', x: 100 + xIni, y: 0 + yIni },
+		{ name: 'Elemental', x: 125 + xIni, y: 0 + yIni },
+		{ name: 'Fey ', x: 150 + xIni, y: 0 + yIni },
+		{ name: 'Flame', x: 175 + xIni, y: 0 + yIni },
+		{ name: 'Goblins', x: 200 + xIni, y: 0 + yIni },
+		{ name: 'Ice ', x: 225 + xIni, y: 0 + yIni },
+		{ name: 'Mage ', x: 250 + xIni, y: 0 + yIni },
+		{ name: 'Passaros', x: 275 + xIni, y: 0 + yIni },
+		{ name: 'Refletem', x: 300 + xIni, y: 0 + yIni },
+		{ name: 'Repteis', x: 325 + xIni, y: 0 + yIni },
+		{ name: 'Repond', x: 350 + xIni, y: 0 + yIni },
+		{ name: 'Undead', x: 375 + xIni, y: 0 + yIni },
+		{ name: 'Vermin', x: 400 + xIni, y: 0 + yIni },
+	];
+
+	SelecionarBAUSOrigemDestino();
+
+	ExecuteOrganizadorBAUS(arrNames, '0x9E28', 'any', false);
+
+	var distanceBetween = 15;
+	ExecuteOrganizadorBAUS([], '0x2F5A', '0x0501', false, distanceBetween, 0, 40, 150);
+	ExecuteOrganizadorBAUS([], '0x2F5A', '0x0000', false, distanceBetween, 0, 400, 150);
+	ExecuteOrganizadorBAUS([], '0x2F59', '0x0501', false, distanceBetween, 0, 40, 175);
+	ExecuteOrganizadorBAUS([], '0x2F59', '0x0000', false, distanceBetween, 0, 40, 200);
+	ExecuteOrganizadorBAUS([], '0x2F58', '0x0501', false, distanceBetween, 0, 40, 225);
+	ExecuteOrganizadorBAUS([], '0x2F58', '0x0000', false, distanceBetween, 0, 400, 225);
+	ExecuteOrganizadorBAUS([], '0x2F5B', '0x0501', false, distanceBetween, 0, 40, 250);
+	ExecuteOrganizadorBAUS([], '0x2F5B', '0x0000', false, distanceBetween, 0, 400, 250);
+
+	Orion.RemoveObject('bpOrigem');
+	Orion.RemoveObject('bpDestino');
+}
+
+
+
+
+function ExecOrganizarJoiaMagicaSlayer() {
+	var xIni = 40;
+	var yIni = 80;
+	var arrNames = [
+		{ name: 'Android', x: 0 + xIni, y: 0 + yIni },
+		{ name: 'Aracnideos', x: 10 + xIni, y: 0 + yIni },
+		{ name: 'Aranhas', x: 20 + xIni, y: 0 + yIni },
+		{ name: 'Cobras', x: 30 + xIni, y: 0 + yIni },
+		{ name: 'Dinossauros', x: 40 + xIni, y: 0 + yIni },
+		{ name: 'Dragoes', x: 50 + xIni, y: 0 + yIni },
+		{ name: 'Eodon', x: 60 + xIni, y: 0 + yIni },
+		{ name: 'EodonTribe', x: 70 + xIni, y: 0 + yIni },
+		{ name: 'Envenenados', x: 80 + xIni, y: 0 + yIni },
+		{ name: 'Escorpioes', x: 90 + xIni, y: 0 + yIni },
+		{ name: 'Exorcismo', x: 100 + xIni, y: 0 + yIni },
+		{ name: 'Fada', x: 0 + xIni, y: 15 + yIni },
+		{ name: 'Gargulas', x: 10 + xIni, y: 15 + yIni },
+		{ name: 'Goblins', x: 20 + xIni, y: 15 + yIni },
+		{ name: 'HomensLagarto', x: 30 + xIni, y: 15 + yIni },
+		{ name: 'Myrmidex', x: 40 + xIni, y: 15 + yIni },
+		{ name: 'Ogros', x: 50 + xIni, y: 15 + yIni },
+		{ name: 'Ofidianos', x: 60 + xIni, y: 15 + yIni },
+		{ name: 'Orcs', x: 70 + xIni, y: 15 + yIni },
+		{ name: 'QuedraPedras', x: 80 + xIni, y: 15 + yIni },
+		{ name: 'Repteis', x: 90 + xIni, y: 15 + yIni },
+		{ name: 'Sanguinarios', x: 100 + xIni, y: 15 + yIni },
+		{ name: 'Terathan', x: 0 + xIni, y: 30 + yIni },
+		{ name: 'Trolls', x: 10 + xIni, y: 30 + yIni },
+		{ name: 'Trolls', x: 20 + xIni, y: 30 + yIni },
+		{ name: 'Undeads', x: 30 + xIni, y: 30 + yIni },
+		{ name: 'Vacuum', x: 40 + xIni, y: 30 + yIni },
+	]
+
+	SelecionarBAUSOrigemDestino();
+
+	ExecuteOrganizadorBAUS(arrNames, '0x0F26', '0x0482', true);
+
+	Orion.RemoveObject('bpOrigem');
+	Orion.RemoveObject('bpDestino');
+}
+
+
+function ExecOrganizarJoiaAnelBrincoBracelete() {
+	var xIni = 30;
+	var yIni = 40;
+	var xIndice = 30;
+	var yIndice = 40;
+	var corJoia = '0x04EC';//Ambrosia
+	var arrNames = [
+		{ name: 'Acampamento', x: xIni + xIndice, y: yIni + yIndice },
+		{ name: 'Ajustes', x: xIni + (2 * xIndice), y: yIni + yIndice },
+		{ name: 'Alfaiataria', x: xIni + (3 * xIndice), y: yIni + yIndice },
+		{ name: 'Alquimia', x: xIni + (4 * xIndice), y: yIni + yIndice },
+		{ name: 'Anatomia', x: xIni + (5 * xIndice), y: yIni + yIndice },
+		{ name: 'Animal Domesticado', x: xIni + (6 * xIndice), y: yIni + yIndice },
+		{ name: 'Avaliacao Forense', x: xIni + (7 * xIndice), y: yIni + yIndice },
+		{ name: 'Avalie A', x: xIni + (8 * xIndice), y: yIni + yIndice },
+		{ name: 'Bisbilhotando', x: xIni + (9 * xIndice), y: yIni + yIndice },
+		{ name: 'Carpintaria', x: xIni + (10 * xIndice), y: yIni + yIndice },
+		{ name: 'Cartografia', x: xIni + (11 * xIndice), y: yIni + yIndice },
+		{ name: 'Cavalaria', x: xIni + (12 * xIndice), y: yIni + yIndice },
+		{ name: 'Conhecimento Animal', x: xIni + (13 * xIndice), y: yIni + yIndice },
+		{ name: 'Cozinhando', x: xIni + (14 * xIndice), y: yIni + yIndice },
+		{ name: 'Cura', x: xIni + (15 * xIndice), y: yIni + yIndice },
+
+		{ name: 'Detectando Oculto', x: xIni + xIndice, y: yIni + (2 * yIndice) },
+		{ name: 'Discordancia', x: xIni + (2 * xIndice), y: yIni + (2 * yIndice) },
+		{ name: 'Envenenamento', x: xIni + (3 * xIndice), y: yIni + (2 * yIndice) },
+		{ name: 'Esgrima', x: xIni + (4 * xIndice), y: yIni + (2 * yIndice) },
+		{ name: 'Espirito', x: xIni + (5 * xIndice), y: yIni + (2 * yIndice) },
+		{ name: 'Feiticos De', x: xIni + (6 * xIndice), y: yIni + (2 * yIndice) },
+		{ name: 'Ferraria', x: xIni + (7 * xIndice), y: yIni + (2 * yIndice) },
+		{ name: 'Fletching', x: xIni + (8 * xIndice), y: yIni + (2 * yIndice) },
+		{ name: 'Foco', x: xIni + (9 * xIndice), y: yIni + (2 * yIndice) },
+		{ name: 'Furtividade', x: xIni + (10 * xIndice), y: yIni + (2 * yIndice) },
+		{ name: 'Historia De', x: xIni + (11 * xIndice), y: yIni + (2 * yIndice) },
+		{ name: 'Identificacao De', x: xIni + (12 * xIndice), y: yIni + (2 * yIndice) },
+		{ name: 'Identificacao Do', x: xIni + (13 * xIndice), y: yIni + (2 * yIndice) },
+		{ name: 'Implorando', x: xIni + (14 * xIndice), y: yIni + (2 * yIndice) },
+		{ name: 'Inscricao', x: xIni + (15 * xIndice), y: yIni + (2 * yIndice) },
+
+		{ name: 'Lenhador', x: xIni + xIndice, y: yIni + (3 * yIndice) },
+		{ name: 'Lockpicking', x: xIni + (2 * xIndice), y: yIni + (3 * yIndice) },
+		{ name: 'Luta Livre', x: xIni + (3 * xIndice), y: yIni + (3 * yIndice) },
+		{ name: 'Mace Fighting', x: xIni + (4 * xIndice), y: yIni + (3 * yIndice) },
+		{ name: 'Magery', x: xIni + (5 * xIndice), y: yIni + (3 * yIndice) },
+		{ name: 'Meditacao', x: xIni + (6 * xIndice), y: yIni + (3 * yIndice) },
+		{ name: 'Mineracao', x: xIni + (7 * xIndice), y: yIni + (3 * yIndice) },
+		{ name: 'Musicalidade', x: xIni + (8 * xIndice), y: yIni + (3 * yIndice) },
+		{ name: 'Necromancia', x: xIni + (9 * xIndice), y: yIni + (3 * yIndice) },
+		{ name: 'Pacificacao', x: xIni + (10 * xIndice), y: yIni + (3 * yIndice) },
+		{ name: 'Parrying', x: xIni + (11 * xIndice), y: yIni + (3 * yIndice) },
+		{ name: 'Pastoreio', x: xIni + (12 * xIndice), y: yIni + (3 * yIndice) },
+		{ name: 'Pescaria', x: xIni + (13 * xIndice), y: yIni + (3 * yIndice) },
+		{ name: 'Provocacao', x: xIni + (14 * xIndice), y: yIni + (3 * yIndice) },
+		{ name: 'Rastreamento', x: xIni + (15 * xIndice), y: yIni + (3 * yIndice) },
+
+		{ name: 'Remover Armadilha', x: xIni + xIndice, y: yIni + (4 * yIndice) },
+		{ name: 'Roubando', x: xIni + (2 * xIndice), y: yIni + (4 * yIndice) },
+		{ name: 'Se Escondendo', x: xIni + (3 * xIndice), y: yIni + (4 * yIndice) },
+		{ name: 'Taticas', x: xIni + (4 * xIndice), y: yIni + (4 * yIndice) },
+		{ name: 'Tiro Com', x: xIni + (5 * xIndice), y: yIni + (4 * yIndice) },
+		{ name: 'Veterinario', x: xIni + (6 * xIndice), y: yIni + (4 * yIndice) },
+	]
+
+	SelecionarBAUSOrigemDestino();
+
+	ExecuteOrganizadorBAUS(arrNames, '0x108A', corJoia, true);
+	ExecuteOrganizadorBAUS(arrNames, '0x1087', corJoia, true, 0, 8);
+	ExecuteOrganizadorBAUS(arrNames, '0x1086', corJoia, true, 0, 16);
+
+	Orion.RemoveObject('bpOrigem');
+	Orion.RemoveObject('bpDestino');
+
+}
+
+
+
+function SelecionarBAUSOrigemDestino() {
+	Orion.AddObject('bpOrigem');
+	Orion.CharPrint(self, 906, 'Selecione Bau ORIGEM');
+	while (Orion.HaveTarget()) { Orion.Wait('50'); }
+
+	Orion.AddObject('bpDestino');
+	Orion.CharPrint(self, 906, 'Selecione Bau DESTINO');
+	while (Orion.HaveTarget()) { Orion.Wait('50'); }
+}
+
+function ExecuteEsvaziarBauEmOutro() {
+	SelecionarBAUSOrigemDestino();
+
+	var lstItens = Orion.FindType('any', 'any', 'bpOrigem');
+
+	lstItens.forEach(function (item) {
+		var obj = Orion.FindObject(item);
+		if (obj == null) return;
+
+		Orion.MoveItem(item, 0, 'bpDestino', obj.X(), obj.Y());
+		Orion.Wait(50);
+	});
+
+	Orion.RemoveObject('bpOrigem');
+	Orion.RemoveObject('bpDestino');
+}
+
+function ExecuteCompareName(pCompare, pArrayStrCompare) {
+	var nameCompare = '';
+	var isNameCompare = false;
+
+	pArrayStrCompare.forEach(function (str) {
+		nameCompare = pCompare.match(str);
+		isNameCompare = (nameCompare == str);
+		if (isNameCompare) return;
+	})
+
+	return isNameCompare;
+}
+
+
+function ExecuteOrganizadorBAUS(pArrayNames, pItemType, pItemColor, pEmpilhar, pX, pY, pXIni, pYIni) {
+	var lstInOrigem = Orion.FindType(pItemType, pItemColor, 'bpOrigem');
+	var selected = null;
+	lstInOrigem.forEach(function (item) {
+		var itemObj = Orion.FindObject(item);
+		if (pArrayNames.length > 0) selected = null;
+
+		pArrayNames.forEach(function (value) {
+			if (selected != null) return;
+			var hasNameCompare = ExecuteCompareName(itemObj.Properties(), [value.name]);
+			if (hasNameCompare) {
+				selected = value;
+				return;
+			}
+		})
+
+		if (pArrayNames.length == 0) {
+			if (selected == null) {
+				selected = { x: pXIni, y: pYIni }
+			} else {
+				selected.x = selected.x + pX;
+				selected.y = selected.y + pY;
+			}
+			//Orion.Print(selected.x + ' - ' + selected.y)
+		}
+
+		if (selected != null) {
+			var _Y = selected.y;
+			var _X = selected.x;
+			if ((pEmpilhar == false) && (selected.name != null)) {
+				if (selected.count != null) {
+					_Y = selected.y + (selected.count * 7);
+					selected.count = selected.count + 1;
+				} else {
+					selected.count = 1;
+				}
+			} else if (pY != null) {
+				_Y = _Y + pY;
+			}
+			Orion.MoveItem(item, 1, 'bpDestino', _X, _Y);
+			Orion.Wait(50);
+		}
+	})
+}
